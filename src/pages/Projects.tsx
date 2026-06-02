@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface MediaItem {
     type: 'image' | 'video';
@@ -26,6 +26,46 @@ interface Project {
 const Projects = () => {
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [viewMode, setViewMode] = useState<'info' | 'gallery'>('info');
+    const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+    const [isClosingLightbox, setIsClosingLightbox] = useState(false);
+    const observerRef = useRef<IntersectionObserver | null>(null);
+
+    const handleCloseLightbox = () => {
+        setIsClosingLightbox(true);
+        setTimeout(() => {
+            setLightboxImage(null);
+            setIsClosingLightbox(false);
+        }, 300);
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                handleCloseLightbox();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    useEffect(() => {
+        observerRef.current = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal-visible');
+                    observerRef.current?.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        const elements = document.querySelectorAll('.project-card-animate');
+        elements.forEach((el) => observerRef.current?.observe(el));
+
+        return () => observerRef.current?.disconnect();
+    }, []);
 
     // Prevent background scrolling when overlay is open
     useEffect(() => {
@@ -78,7 +118,9 @@ const Projects = () => {
             typology: "Residential",
             mediaType: 'image',
             hero: { type: 'image', src: "/projects/project-2/hero-2.png" },
-            description: `This is a placeholder description for the second project. It serves to demonstrate the layout and functionality of the project popup and gallery. The design maintains the same aesthetic and structure as the first project, offering a seamless user experience across the portfolio.`,
+            description: `More than a home, a state of mind. 
+The Jijai House is shaped by sunlight filtering through layered spaces, where volumes blend in perfect harmony from one space to another. Designed to quiet the noise and offer clarity, comfort, and purity of experience. 
+Open and welcoming, yet deeply protective of solitude as it creates an environment where focus deepens, the spirit settles and life within remains grounded, intentional and ever evolving.`,
             details: {
                 program: "Residential",
                 area: "300 sq.m",
@@ -126,7 +168,7 @@ const Projects = () => {
             typology: "Residential / Public",
             mediaType: 'image',
             hero: { type: 'image', src: "/projects/project-4/hero-4.jpeg" },
-            description: `This is a description for Project 4. It uses a hero image and a gallery of images.`,
+            description: `A space of authority and administration, the Commandant Office at SRPF is designed with quiet sophistication. The warmth of wood and the texture of rattan come together to create a calm, grounded environment—one that supports clarity of thought and composed decision-making. The design subtly highlights the national emblem, the Ashoka Pillar, and the flags, reinforcing the office’s institutional significance.`,
             details: {
                 program: "Program Name",
                 area: "XXXX sq.m",
@@ -153,20 +195,25 @@ const Projects = () => {
             }}>Selected Projects</h1>
 
             {/* Project List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5rem' }}>
-                {projects.map((project) => (
+            <div className="projects-grid">
+                {projects.map((project, index) => (
                     <div
                         key={project.id}
                         onClick={() => setSelectedProject(project)}
-                        style={{ cursor: 'pointer', maxWidth: '900px' }}
+                        className="project-card-animate"
+                        style={{ cursor: 'pointer', maxWidth: '900px', transitionDelay: `${index * 0.15}s` }}
                     >
-                        <div style={{
-                            width: '100%',
-                            aspectRatio: '16/9',
-                            marginBottom: '1.5rem',
-                            backgroundColor: '#e5e5e5',
-                            overflow: 'hidden'
-                        }}>
+                        <div
+                            className="project-media-container"
+                            style={{
+                                width: '100%',
+                                aspectRatio: '16/9',
+                                marginBottom: '1.5rem',
+                                backgroundColor: '#e5e5e5',
+                                overflow: 'hidden',
+                                position: 'relative'
+                            }}
+                        >
                             {project.mediaType === 'video' ? (
                                 <video
                                     src={project.hero.src}
@@ -183,6 +230,9 @@ const Projects = () => {
                                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                                 />
                             )}
+                            <div className="project-hover-overlay">
+                                <h3 className="project-hover-title">{project.title}</h3>
+                            </div>
                         </div>
                         <h2 style={{
                             fontSize: '1.5rem',
@@ -207,32 +257,36 @@ const Projects = () => {
 
             {/* Project Popup Dialog */}
             {selectedProject && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    backgroundColor: 'rgba(255, 255, 255, 0.92)', // Dimmed white backdrop
-                    zIndex: 2000,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '2rem' // Padding around the popup
-                }}>
-                    {/* Dialog Box */}
-                    <div style={{
-                        position: 'relative',
-                        width: '100%',
-                        maxWidth: '1000px',
-                        height: '90vh', // Max height of the popup
-                        backgroundColor: '#fff',
-                        boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
+                <div
+                    className="popup-overlay-animate"
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: 'rgba(255, 255, 255, 0.92)', // Dimmed white backdrop
+                        zIndex: 2000,
                         display: 'flex',
-                        flexDirection: 'column',
-                        overflow: 'hidden', // Internal scrolling
-                        borderRadius: '20px'
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '2rem' // Padding around the popup
                     }}>
+                    {/* Dialog Box */}
+                    <div
+                        className="popup-dialog-animate"
+                        style={{
+                            position: 'relative',
+                            width: '100%',
+                            maxWidth: '1000px',
+                            height: '90vh', // Max height of the popup
+                            backgroundColor: '#fff',
+                            boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            overflow: 'hidden', // Internal scrolling
+                            borderRadius: '20px'
+                        }}>
 
                         {/* Header Section (Fixed at top of popup) */}
                         <div style={{
@@ -410,7 +464,15 @@ const Projects = () => {
                             {viewMode === 'gallery' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                                     {selectedProject.gallery.map((item, i) => (
-                                        <div key={i} style={{ width: 'calc(100% + 6rem)', marginLeft: '-3rem' }}>
+                                        <div
+                                            key={i}
+                                            className="gallery-item-animate"
+                                            style={{
+                                                width: 'calc(100% + 6rem)',
+                                                marginLeft: '-3rem',
+                                                animationDelay: `${i * 0.1}s`
+                                            }}
+                                        >
                                             {item.type === 'video' ? (
                                                 <video
                                                     src={item.src}
@@ -428,10 +490,12 @@ const Projects = () => {
                                                 <img
                                                     src={item.src}
                                                     alt={`Gallery view ${i + 1}`}
+                                                    onClick={() => setLightboxImage(item.src)}
                                                     style={{
                                                         width: '100%',
                                                         height: 'auto',
-                                                        display: 'block'
+                                                        display: 'block',
+                                                        cursor: 'zoom-in'
                                                     }}
                                                 />
                                             )}
@@ -441,6 +505,61 @@ const Projects = () => {
                             )}
                         </div>
                     </div>
+                </div>
+            )}
+            {/* Lightbox Overlay */}
+            {lightboxImage && (
+                <div
+                    className={`lightbox-overlay-animate ${isClosingLightbox ? 'closing' : ''}`}
+                    onClick={handleCloseLightbox}
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                        zIndex: 3000,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'zoom-out'
+                    }}
+                >
+                    <img
+                        src={lightboxImage}
+                        alt="Fullscreen view"
+                        className="lightbox-image-animate"
+                        style={{
+                            maxWidth: '90%',
+                            maxHeight: '90%',
+                            objectFit: 'contain',
+                            cursor: 'default'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleCloseLightbox();
+                        }}
+                        style={{
+                            position: 'absolute',
+                            top: '1rem',
+                            right: '2rem',
+                            background: 'none',
+                            border: 'none',
+                            color: '#fff',
+                            fontSize: '3rem',
+                            cursor: 'pointer',
+                            lineHeight: 1,
+                            padding: '1rem',
+                            opacity: 0.7,
+                            transition: 'opacity 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                        aria-label="Close fullscreen"
+                    >
+                        &times;
+                    </button>
                 </div>
             )}
         </div>

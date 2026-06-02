@@ -89,3 +89,169 @@ a:hover {
 body {
   display: block;
 }
+
+/* Projects Grid Layout */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3rem 2rem;
+}
+
+@media (max-width: 1199px) {
+  .projects-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3rem 2rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .projects-grid {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+  }
+}
+
+/* Project Card Hover Overlay */
+.project-media-container .project-hover-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.project-hover-title {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 300;
+  margin: 0;
+  text-align: center;
+  padding: 1rem;
+  transform: translateY(10px);
+  transition: transform 0.3s ease;
+}
+
+/* Hover effects for devices that support hover */
+@media (hover: hover) {
+  .project-media-container:hover .project-hover-overlay {
+    opacity: 1;
+  }
+  .project-media-container:hover .project-hover-title {
+    transform: translateY(0);
+  }
+}
+
+/* Touch interaction fallback (briefly show overlay on tap) */
+.project-media-container:active .project-hover-overlay {
+  opacity: 1;
+}
+.project-media-container:active .project-hover-title {
+  transform: translateY(0);
+}
+
+/* Scroll Reveal Animations */
+.project-card-animate {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.project-card-animate.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hover Scale Enhancement */
+.project-media-container img,
+.project-media-container video {
+  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@media (hover: hover) {
+  .project-media-container:hover img,
+  .project-media-container:hover video {
+    transform: scale(1.04);
+  }
+}
+
+.project-media-container:active img,
+.project-media-container:active video {
+  transform: scale(1.04);
+}
+
+/* Popup Transitions */
+@keyframes popupOverlayFadeIn {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(8px); }
+}
+
+@keyframes popupDialogZoomIn {
+  from { opacity: 0; transform: scale(0.97) translateY(15px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.popup-overlay-animate {
+  animation: popupOverlayFadeIn 0.3s ease-out forwards;
+}
+
+.popup-dialog-animate {
+  animation: popupDialogZoomIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Lightbox Transition */
+@keyframes lightboxOverlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lightboxOverlayFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes lightboxImageZoomIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes lightboxImageZoomOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.95); }
+}
+
+.lightbox-overlay-animate {
+  animation: lightboxOverlayFadeIn 0.3s ease-out forwards;
+}
+
+.lightbox-overlay-animate.closing {
+  animation: lightboxOverlayFadeOut 0.3s ease-out forwards;
+  pointer-events: none;
+}
+
+.lightbox-image-animate {
+  animation: lightboxImageZoomIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.lightbox-overlay-animate.closing .lightbox-image-animate {
+  animation: lightboxImageZoomOut 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Gallery Item Animations */
+@keyframes galleryItemReveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gallery-item-animate {
+  opacity: 0;
+  animation: galleryItemReveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
